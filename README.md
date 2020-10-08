@@ -61,4 +61,4 @@ See [LICENSE](LICENSE).
 
 Credits
 -------
-Thanks, [Mario Brivio](https://github.com/mbrivio), for your precious tips!
+Thanks, [Mauro Brivio](https://github.com/mbrivio), for your precious tips!
