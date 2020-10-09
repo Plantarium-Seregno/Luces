@@ -1,6 +1,6 @@
 About Luces
 ===========
-Luces is a Christmas light show project heavily inspired by [this one](https://maker.pro/arduino/projects/christmas-light-show-with-arduino/).
+Luces ("Lights" in Latin) is a Christmas light show project heavily inspired by [this one](https://maker.pro/arduino/projects/christmas-light-show-with-arduino/).
 
 Main differences:
 
