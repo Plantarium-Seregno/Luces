@@ -25,7 +25,7 @@ Hardware
 - 1 5V 1A power supply
 - [Behringer UMC202HD](https://www.behringer.com/product.html?modelCode=P0BJZ)
 - [Swissonic SA 125](https://www.thomann.de/it/swissonic_sa_125.htm)
-- 1 audio cable (XLR male to balanced 6,3 mm jack)
+- 1 audio cable (XLR male to balanced 6.3 mm jack)
 - 2 x [RCF HD 3216T](https://www.rcf.it/it_IT/products/product-detail/hd-3216t/418924)
 - 2 x 0.8 mm² (minimum) copper wires
 
