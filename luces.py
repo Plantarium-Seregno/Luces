@@ -3,108 +3,77 @@
 
 This plays a MIDI file and an audio file at the same time.
 
-Based on this two examples:
-
-* https://github.com/spatialaudio/jackclient-python/blob/master/examples/play_file.py 
-* https://github.com/spatialaudio/jackclient-python/blob/master/examples/midi_file_player.py
-
+Copyright © 2020, Plantarium Società Agricola
 """
-import sys
-import argparse
-from threading import Event, Thread
-#from multiprocessing import Event, Process
-import queue
+
+import numpy as np
+import threading
 import jack
+import soundfile as sf
 from mido import MidiFile
 
 
-#argv = iter(sys.argv)
-#next(argv)
-#filename = next(argv, '')
-midi_file = '../src/Luces/Media/JingleBells.mid'
-#connect_to = next(argv, '')
-#if not filename:
-#    sys.exit('Please specify a MIDI file')
-try:
-    mid = iter(MidiFile(midi_file))
-except Exception as e:
-    sys.exit(type(e).__name__ + ' while loading MIDI: ' + str(e))
-
-audio_file = '../JingleBells/export/sessione_ffmpeg_mono.wav'
-
-parser = argparse.ArgumentParser(description=__doc__)
-#parser.add_argument('filename', help='audio file to be played back')
-#parser.add_argument(
-#    '-b', '--buffersize', type=int, default=20,
-#    help='number of blocks used for buffering (default: %(default)s)')
-#parser.add_argument('-c', '--clientname', default='file player',
-#                    help='JACK client name')
-#parser.add_argument('-m', '--manual', action='store_true',
-#                    help="don't connect to output ports automatically")
-manual = False
-#args = parser.parse_args()
-#if args.buffersize < 1:
-#    parser.error('buffersize must be at least 1')
-
-#client = jack.Client(args.clientname)
 client = jack.Client('Luces')
 
-blocksize = client.blocksize
-samplerate = client.samplerate
+audio_out_port = client.outports.register('audio_out') # Mono
+target_audio_port = client.get_ports(is_physical=True, is_input=True,
+        is_audio=True)[0] # Soundcard Audio Output 1 (L)
+midi_out_port = client.midi_outports.register('midi_out')
+target_midi_port = client.get_ports('Leonardo', is_input=True,
+        is_midi=True)[0] # TODO: put Arduino instead of jack-keyboard
 
-midi_port = client.midi_outports.register('output')
-midi_event = Event()
-midi_msg = next(mid)
-midi_fs = None  # sampling rate
-midi_offset = 0
+media_dir = 'Media'
+project = 'JingleBells'
 
-#q = queue.Queue(maxsize=args.buffersize)
-q = queue.Queue(maxsize=20)
-audio_event = Event()
+audio_file = f'{media_dir}/{project}.wav'
+midi_file = f'{media_dir}/{project}.mid'
 
+audio_event = threading.Event()
+midi_event = threading.Event()
 
-def print_error(*args):
-    print(*args, file=sys.stderr)
-
-
-def stop_callback(msg=''):
-    if msg:
-        print_error(msg)
-    for port in client.outports:
-        port.get_array().fill(0)
-    audio_event.set()
-    raise jack.CallbackExit
-
+audio_data, samplerate = sf.read(audio_file)
+current_audio_frame = 0
+midi_data = iter(MidiFile(midi_file))
+midi_msg = next(midi_data)
+fs = None # Sampling rate
+offset = 0
 
 def audio_process(frames):
-    if frames != blocksize:
-        stop_callback('blocksize must not be changed, I quit!')
-    try:
-        data = q.get_nowait()
-    except queue.Empty:
-        stop_callback('Buffer is empty: increase buffersize?')
-    if data is None:
-        stop_callback()  # Playback is finished
-    for channel, port in zip(data.T, client.outports):
-        port.get_array()[:] = channel
+    global current_audio_frame
+    out_audio_data = audio_data[
+            current_audio_frame:current_audio_frame+client.blocksize]
+
+    if len(out_audio_data) == 0: # Playback is finished
+        audio_out_port.get_array().fill(0)
+        audio_event.set()
+
+    # Last block
+    # TODO: verify the case len(out_audio_data) == client.blocksize
+    if len(out_audio_data) < client.blocksize:
+        # Fill with zeros
+        out_audio_data = np.append(out_audio_data,
+                np.zeros(client.blocksize-len(out_audio_data)))
+
+    audio_out_port.get_array()[:] = out_audio_data
+
+    current_audio_frame += client.blocksize
 
 
 def midi_process(frames):
-    global midi_offset
+    global offset
     global midi_msg
-    midi_port.clear_buffer()
+    midi_out_port.clear_buffer()
     while True:
-        if midi_offset >= frames:
-            midi_offset -= frames
-            return  # We'll take care of this in the next block ...
-        # Note: This may raise an exception:
-        midi_port.write_midi_event(midi_offset, midi_msg.bytes())
+        if offset >= frames:
+            offset -= frames
+            return
+        midi_out_port.write_midi_event(offset, midi_msg.bytes())
         try:
-            midi_msg = next(mid)
+            midi_msg = next(midi_data)
         except StopIteration:
             midi_event.set()
             raise jack.CallbackExit
-        midi_offset += round(midi_msg.time * midi_fs)
+        offset += round(midi_msg.time * fs)
 
 
 @client.set_process_callback
@@ -112,109 +81,23 @@ def process(frames):
     try:
         audio_process(frames)
     except jack.CallbackExit:
-        # proper handling recommended
+        # TODO: proper handling recommended
         pass
     try:
         midi_process(frames)
     except jack.CallbackExit:
-        # proper handling recommended
+        # TODO: proper handling recommended
         pass
 
 
 @client.set_samplerate_callback
 def samplerate(samplerate):
-    global midi_fs
-    midi_fs = samplerate
+    global fs
+    fs = samplerate
 
 
-@client.set_shutdown_callback
-def shutdown(status, reason):
-    print_error('JACK shutdown:', reason, status)
-    audio_event.set()
-    midi_event.set()
-
-
-@client.set_xrun_callback
-def xrun(delay):
-    print_error("An xrun occured; increase JACK's period size?")
-    print_error("Delay in microseconds:", delay)
-
-
-#def shutdown(status, reason):
-#    print_error('JACK shutdown!')
-#    print_error('status:', status)
-#    print_error('reason:', reason)
-#    audio_event.set()
-
-
-#client.set_xrun_callback(xrun)
-#client.set_shutdown_callback(shutdown)
-#client.set_process_callback(process)
-
-
-def run_midi():
-    with client:
-        #if connect_to:
-        #    port.connect(connect_to)
-        print('Playing', repr(midi_file), '... press Ctrl+C to stop')
-        try:
-            midi_event.wait()
-        except KeyboardInterrupt:
-            print('\nInterrupted by user')
-
-
-def run_audio():
-    try:
-        #import jack
-        import soundfile as sf
-
-        #with sf.SoundFile(args.filename) as f:
-        with sf.SoundFile(audio_file) as f:
-            for ch in range(f.channels):
-                client.outports.register('out_{0}'.format(ch + 1))
-            block_generator = f.blocks(blocksize=blocksize, dtype='float32',
-                    always_2d=True, fill_value=0)
-            #for _, data in zip(range(args.buffersize), block_generator):
-            for _, data in zip(range(20), block_generator):
-                q.put_nowait(data)  # Pre-fill queue
-            with client:
-                #if not args.manual:
-                if not manual:
-                    target_ports = client.get_ports(
-                        is_physical=True, is_input=True, is_audio=True)
-                    if len(client.outports) == 1 and len(target_ports) > 1:
-                        # Connect mono file to stereo output
-                        client.outports[0].connect(target_ports[0])
-                        client.outports[0].connect(target_ports[1])
-                    else:
-                        for source, target in zip(client.outports,
-                                target_ports):
-                            source.connect(target)
-                #timeout = blocksize * args.buffersize / samplerate
-                timeout = blocksize * 20 / samplerate
-                for data in block_generator:
-                    q.put(data, timeout=timeout)
-                q.put(None, timeout=timeout)  # Signal end of file
-                audio_event.wait()  # Wait until playback is finished
-    except KeyboardInterrupt:
-        parser.exit('\nInterrupted by user')
-    except (queue.Full):
-        # A timeout occured, i.e. there was an error in the callback
-        parser.exit(1)
-    except Exception as e:
-        parser.exit(type(e).__name__ + ': ' + str(e))
-
-
-if __name__ == "__main__":
-    #processes = [Process(target=run_audio), Process(target=run_midi)]
-    threads = [Thread(target=run_audio), Thread(target=run_midi)]
-    #threads = [Thread(target=run_midi)]
-    #for p in processes:
-    #    p.start()
-    #for p in processes:
-    #    p.join()
-    for t in threads:
-        t.start()
-    for t in threads:
-        t.join()
-    #run_midi()
+with client:
+    client.connect(audio_out_port, target_audio_port)
+    client.connect(midi_out_port, target_midi_port)
+    audio_event.wait() # Wait until playback is finished
+    midi_event.wait()
