@@ -19,8 +19,8 @@ audio_out_port = client.outports.register('audio_out') # Mono
 target_audio_port = client.get_ports(is_physical=True, is_input=True,
         is_audio=True)[0] # Soundcard Audio Output 1 (L)
 midi_out_port = client.midi_outports.register('midi_out')
-target_midi_port = client.get_ports('Leonardo', is_input=True,
-        is_midi=True)[0] # TODO: put Arduino instead of jack-keyboard
+target_midi_port = client.get_ports('Arduino Leonardo', is_input=True,
+        is_midi=True)[0]
 
 media_dir = 'Media'
 project = 'JingleBells'
