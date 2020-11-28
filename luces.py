@@ -80,14 +80,12 @@ def midi_process(frames):
 def process(frames):
     try:
         audio_process(frames)
-    except jack.CallbackExit:
-        # TODO: proper handling recommended
-        pass
+    except jack.CallbackExit as e:
+        print('An error occurred while processing the audio file:', e)
     try:
         midi_process(frames)
-    except jack.CallbackExit:
-        # TODO: proper handling recommended
-        pass
+    except jack.CallbackExit as e:
+        print('An error occurred while processing the MIDI file:', e)
 
 
 @client.set_samplerate_callback
