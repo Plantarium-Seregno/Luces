@@ -6,12 +6,18 @@ This plays a MIDI file and an audio file at the same time.
 Copyright © 2020, Plantarium Società Agricola
 """
 
+import argparse
 import numpy as np
 import threading
 import jack
 import soundfile as sf
 from mido import MidiFile
 
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('media_dir',
+        help='directory where audio and MIDI files are located')
+parser.add_argument('project', help='light show to be run')
+args = parser.parse_args()
 
 client = jack.Client('Luces')
 
@@ -22,8 +28,8 @@ midi_out_port = client.midi_outports.register('midi_out')
 target_midi_port = client.get_ports('Arduino Leonardo', is_input=True,
         is_midi=True)[0]
 
-media_dir = 'Media'
-project = 'JingleBells'
+media_dir = args.media_dir
+project = args.project
 
 audio_file = f'{media_dir}/{project}.wav'
 midi_file = f'{media_dir}/{project}.mid'
