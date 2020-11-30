@@ -6,12 +6,14 @@ import astral
 import subprocess
 
 
+home = str(pathlib.Path.home())
+
+log = 'luces_runner.log'
+media_dir = f'{home}/src/Luces/Media'
+
 def get_hour():
     return datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=1)))
 
-
-log = 'luces_runner.log'
-media_dir = f'{str(pathlib.Path.home())}/src/Luces/Media'
 
 location = astral.Location(('Seregno', 'Lombardy', 45.64677, 9.22676,
     'Europe/Rome', 0))
@@ -50,7 +52,7 @@ def write_log(message):
 while now < sunset:
     write_log('PAUSE')
     with open(log, 'a') as f:
-        subprocess.run(['/home/user/midi_file_player.py',
+        subprocess.run([f'{home}/midi_file_player.py',
             'src/Luces/Media/Silenzio.mid'], stdout=f, stderr=f)
     write_log('END PAUSE')
     now = get_hour()
@@ -59,10 +61,10 @@ while now < closing_hour:
     project = get_project()
     write_log(f'SHOW: {project}')
     with open(log, 'a') as f:
-        subprocess.run(['/home/user/src/Luces/luces.py', media_dir, project],
+        subprocess.run([f'{home}/src/Luces/luces.py', media_dir, project],
                 stdout=f, stderr=f)
     with open(log, 'a') as f:
-        subprocess.run(['/home/user/midi_file_player.py',
+        subprocess.run([f'{home}/midi_file_player.py',
             'src/Luces/Media/Silenzio.mid'], stdout=f, stderr=f)
     write_log('END SHOW')
     now = get_hour()
