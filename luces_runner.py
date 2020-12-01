@@ -38,9 +38,8 @@ def get_project():
         project = projects[project_counter]
         project_counter += 1
     else:
-        project_counter = 0
-        project = projects[project_counter]
-        project_counter += 1
+        project = projects[0]
+        project_counter = 1
     return project
 
 
