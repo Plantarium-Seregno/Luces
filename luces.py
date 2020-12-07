@@ -42,7 +42,8 @@ current_audio_frame = 0
 midi_data = iter(MidiFile(midi_file))
 midi_msg = next(midi_data)
 fs = None # Sampling rate
-offset = 0
+delay = 150 # audio-MIDI delay, in milliseconds (more or less 70 m)
+offset = round(delay/1000 * samplerate) # delay correction
 
 def audio_process(frames):
     global current_audio_frame
