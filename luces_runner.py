@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+"""Controller for Luces.
+
+This automates Luces, by managing the hours and a playlist.
+
+Copyright © 2020-21, Plantarium Società Agricola
+"""
 
 import datetime
 import pathlib
