@@ -15,9 +15,9 @@ Geolocation
 You can see the Christmas light show at [Garden Tuttoverde](
 https://www.gardentuttoverde.it/) (Seregno, Italy).
 
-geo:45.64677,9.22676?z=18
+geo:45.64615,9.22618?z=18
 
-Here is the [map](https://osm.org/go/0CjU753tN--?m=).
+Here is the [map](https://osm.org/go/0CjU75ILQ--?m=).
 
 Hardware
 --------
@@ -43,6 +43,7 @@ Software
 - Arduino IDE (from Snapcraft)
 - DAW: Ardour
 - JACK Audio Connection Kit
+- Python 3 with additional packages reported in [`requirements.txt`](requirements.txt)
 
 Circuit
 -------
@@ -63,11 +64,11 @@ range)
 
 Copyright
 ---------
-Copyright © 2020, Plantarium Società Agricola
+Copyright © 2020-21, Plantarium Società Agricola
 
 License
 -------
-See [LICENSE](LICENSE).
+See [`LICENSE`](LICENSE).
 
 Credits
 -------
