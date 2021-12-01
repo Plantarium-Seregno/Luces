@@ -3,10 +3,11 @@
 
 This plays a MIDI file and an audio file at the same time.
 
-Copyright © 2020, Plantarium Società Agricola
+Copyright © 2020-21, Plantarium Società Agricola
 """
 
 import argparse
+import time
 import numpy as np
 import threading
 import jack
@@ -20,6 +21,7 @@ parser.add_argument('project', help='light show to be run')
 args = parser.parse_args()
 
 client = jack.Client('Luces')
+time.sleep(5)
 
 audio_out_port = client.outports.register('audio_out') # Mono
 target_audio_port = client.get_ports(is_physical=True, is_input=True,
