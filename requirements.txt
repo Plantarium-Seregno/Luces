@@ -1,0 +1,6 @@
+numpy>=1.19.5
+JACK-Client>=0.5.3
+SoundFile>=0.10.3.post1
+mido>=1.2.9
+astral>=1.6.1
+osm-humanized-opening-hours>=0.6.2
