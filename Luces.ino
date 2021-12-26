@@ -3,8 +3,10 @@
 // Firmware for the Arduino Leonardo board used by the Christmas light show project
 // at Garden Tuttoverde (Seregno, Italy).
 //
-// Copyright © 2020, Plantarium Società Agricola
+// Copyright © 2020-21, Plantarium Società Agricola
 
+
+// External library: USB-MIDI by lathoub
 
 #include <USB-MIDI.h>
 
