@@ -19,7 +19,7 @@ print('Plantarium Società Agricola\n')
 
 home = str(pathlib.Path.home())
 
-log = 'luces_runner.log'
+log = pathlib.PurePath(__file__).stem + '.log'
 media_dir = f'{home}/src/Luces/Media'
 
 location = astral.Location(('Seregno', 'Lombardy', 45.64677, 9.22676,
