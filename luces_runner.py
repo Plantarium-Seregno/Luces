@@ -13,10 +13,13 @@ import astral
 import humanized_opening_hours as hoh
 import subprocess
 
+print(pathlib.PurePath(__file__).name)
+print(f'Copyright © 2020-{datetime.date.today().year - 2000}, ', end='')
+print('Plantarium Società Agricola\n')
 
 home = str(pathlib.Path.home())
 
-log = 'luces_runner.log'
+log = pathlib.PurePath(__file__).stem + '.log'
 media_dir = f'{home}/src/Luces/Media'
 
 location = astral.Location(('Seregno', 'Lombardy', 45.64677, 9.22676,
